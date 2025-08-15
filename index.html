@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zumiez Office - Pokemon Style RPG Engine</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #2a2a2a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            overflow: auto;
+        }
+
+        #gameContainer {
+            position: relative;
+            background: #000;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            margin: 20px;
+        }
+
+        #bootScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            font-family: 'Courier New', monospace;
+            image-rendering: pixelated;
+        }
+
+        .mattendoLogo {
+            color: #fff;
+            font-size: 32px;
+            text-align: center;
+            opacity: 0;
+            animation: fadeInOut 3s ease-in-out;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 2px 2px 0px #333;
+        }
+
+        #titleScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 50%, #87CEEB 100%);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            flex-direction: column;
+        }
+
+        #titleScreen canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        .titleContent {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+
+        .zumiez-title {
+            font-size: 72px;
+            color: #ff0000;
+            text-shadow: 4px 4px 0px #8B0000, 6px 6px 0px #000;
+            letter-spacing: 8px;
+            margin-bottom: 20px;
+            animation: titlePop 0.5s ease-out;
+            font-weight: bold;
+            transform: perspective(200px) rotateX(15deg);
+        }
+
+        .subtitle {
+            font-size: 24px;
+            color: #fff;
+            text-shadow: 2px 2px 0px #000;
+            opacity: 0;
+            animation: blinkIn 1s ease-in-out 0.5s forwards;
+            letter-spacing: 4px;
+        }
+
+        .startButton {
+            margin-top: 40px;
+            padding: 15px 30px;
+            font-size: 20px;
+            background: #fff;
+            color: #000;
+            border: 3px solid #000;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0;
+            animation: slideUp 0.5s ease-out 1.5s forwards;
+            transition: all 0.3s;
+        }
+
+        .startButton:hover {
+            background: #ff0000;
+            color: #fff;
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.8); }
+        }
+
+        @keyframes titlePop {
+            0% { transform: perspective(200px) rotateX(15deg) scale(0); }
+            50% { transform: perspective(200px) rotateX(15deg) scale(1.2); }
+            100% { transform: perspective(200px) rotateX(15deg) scale(1); }
+        }
+
+        @keyframes blinkIn {
+            0%, 25%, 50%, 75% { opacity: 0; }
+            12.5%, 37.5%, 62.5%, 100% { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: #fff;
+            font-size: 14px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 10;
+        }
+
+        #settingsBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            z-index: 100;
+        }
+
+        #settingsBtn:hover {
+            background: #2980b9;
+        }
+
+        #settingsMenu {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2c3e50;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 200;
+            color: white;
+            min-width: 300px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        #settingsMenu h2 {
+            margin-top: 0;
+            text-align: center;
+            color: #ecf0f1;
+        }
+
+        #settingsMenu button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #34495e;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+        }
+
+        #settingsMenu button:hover {
+            background: #4a5f7a;
+        }
+
+        #worldBuilder {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 300;
+            color: white;
+            padding: 20px;
+        }
+
+        #builderControls {
+            position: fixed;
+            right: 20px;
+            top: 20px;
+            background: #2c3e50;
+            padding: 15px;
+            border-radius: 10px;
+            width: 280px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        #builderControls h3 {
+            margin-top: 0;
+            color: #ecf0f1;
+        }
+
+        .builderSection {
+            margin: 15px 0;
+            padding: 10px;
+            background: #34495e;
+            border-radius: 5px;
+        }
+
+        .assetButton {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            margin: 5px;
+            background: #1a252f;
+            border: 2px solid #34495e;
+            cursor: pointer;
+            border-radius: 3px;
+            position: relative;
+        }
+
+        .assetButton.selected {
+            border-color: #3498db;
+            background: #2c3e50;
+        }
+
+        .assetButton canvas {
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        #dialogueBox {
+            display: none;
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border: 3px solid #2c3e50;
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 400px;
+            max-width: 600px;
+            z-index: 150;
+            color: #2c3e50;
+            font-size: 16px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        #dialogueBox .speaker {
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        #dialogueBox .message {
+            line-height: 1.5;
+        }
+
+        #dialogueBox .prompt {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #7f8c8d;
+            text-align: right;
+        }
+
+        #npcDialogueEditor {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2c3e50;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 400;
+            color: white;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        #npcDialogueEditor input, #npcDialogueEditor textarea {
+            width: 100%;
+            padding: 5px;
+            margin: 5px 0;
+            background: #34495e;
+            color: white;
+            border: 1px solid #4a5f7a;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        #npcDialogueEditor textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        #assetManager {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2c3e50;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 400;
+            color: white;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        #assetManager h3 {
+            margin-top: 0;
+            color: #ecf0f1;
+        }
+
+        .assetUploadSection {
+            margin: 20px 0;
+            padding: 15px;
+            background: #34495e;
+            border-radius: 5px;
+        }
+
+        .assetUploadSection h4 {
+            margin-top: 0;
+            color: #3498db;
+        }
+
+        .uploadBox {
+            border: 2px dashed #4a5f7a;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .uploadBox:hover {
+            border-color: #3498db;
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .uploadBox.dragover {
+            border-color: #3498db;
+            background: rgba(52, 152, 219, 0.2);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .assetPreview {
+            display: inline-block;
+            margin: 10px;
+            padding: 5px;
+            background: #1a252f;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .assetPreview img {
+            width: 64px;
+            height: 64px;
+            image-rendering: pixelated;
+            display: block;
+        }
+
+        .assetPreview .assetName {
+            font-size: 10px;
+            text-align: center;
+            margin-top: 5px;
+            color: #ecf0f1;
+        }
+
+        .assetPreview .deleteBtn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .tabButtons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tabButton {
+            flex: 1;
+            padding: 8px;
+            background: #34495e;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tabButton.active {
+            background: #3498db;
+        }
+
+        .tabContent {
+            display: none;
+        }
+
+        .tabContent.active {
+            display: block;
+        }
+
+        .assetInfo {
+            font-size: 12px;
+            color: #95a5a6;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        select {
+            width: 100%;
+            padding: 5px;
+            margin: 5px 0;
+            background: #34495e;
+            color: white;
+            border: 1px solid #4a5f7a;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- Boot Screen -->
+        <div id="bootScreen">
+            <div class="mattendoLogo">
+                MATTENDO<br>ENTERTAINMENT
+            </div>
+        </div>
+        
+        <!-- Title Screen -->
+        <div id="titleScreen">
+            <canvas id="bgCanvas"></canvas>
+            <div class="titleContent">
+                <div class="zumiez-title">ZUMIEZ</div>
+                <div class="subtitle">THE RPG</div>
+                <button class="startButton" onclick="startGame()">START GAME</button>
+            </div>
+        </div>
+        
+        <canvas id="gameCanvas"></canvas>
+        <button id="settingsBtn" style="display:none;">Settings</button>
+        <div id="controls" style="display:none;">
+            Arrow Keys/WASD: Move | T: Talk to NPCs | ESC: Close menus
+        </div>
+        
+        <div id="settingsMenu">
+            <h2>Settings</h2>
+            <button onclick="enterWorldBuilder()">World Builder</button>
+            <button onclick="openAssetManager()">Asset Manager</button>
+            <button onclick="exportGameData()">Export Game</button>
+            <button onclick="importGameData()">Import Game</button>
+            <button onclick="resetGame()">Reset Game</button>
+            <button onclick="closeSettings()">Close</button>
+        </div>
+
+        <div id="worldBuilder">
+            <div id="builderControls">
+                <h3>World Builder</h3>
+                <button onclick="exitWorldBuilder()" style="width:100%; margin-bottom:10px;">Exit Builder</button>
+                
+                <div class="builderSection">
+                    <h4>Asset Type</h4>
+                    <div class="tabButtons">
+                        <button class="tabButton active" onclick="switchTab('tiles')">Tiles</button>
+                        <button class="tabButton" onclick="switchTab('npcs')">NPCs</button>
+                    </div>
+                </div>
+                
+                <div class="builderSection">
+                    <div id="tilesTab" class="tabContent active">
+                        <h4>Tiles</h4>
+                        <div id="tileSelector"></div>
+                        <label style="display:block; margin-top:10px;">
+                            <input type="checkbox" id="walkableCheckbox" checked>
+                            Walkable Tile
+                        </label>
+                    </div>
+                    
+                    <div id="npcsTab" class="tabContent">
+                        <h4>NPCs</h4>
+                        <div id="npcSelector"></div>
+                        <button onclick="placeNPC()" style="width:100%; margin-top:10px;">Place NPC</button>
+                        <button onclick="editNPCDialogue()" style="width:100%; margin-top:5px;">Edit NPC Dialogue</button>
+                    </div>
+                </div>
+                
+                <div class="builderSection">
+                    <h4>Instructions</h4>
+                    <p style="font-size:12px; margin:5px 0;">
+                        - Left-click to place<br>
+                        - Right-click to remove<br>
+                        - Click NPCs to select<br>
+                        - Upload custom assets in Asset Manager
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div id="npcDialogueEditor">
+            <h3>Edit NPC Dialogue</h3>
+            <label>NPC Name:</label>
+            <input type="text" id="npcName" placeholder="Employee Name">
+            <label>Sprite:</label>
+            <select id="npcSprite"></select>
+            <label>Dialogue:</label>
+            <textarea id="npcDialogue" placeholder="What should this NPC say?"></textarea>
+            <button onclick="saveNPCDialogue()" style="width:100%; margin-top:10px;">Save</button>
+            <button onclick="closeNPCEditor()" style="width:100%; margin-top:5px;">Cancel</button>
+        </div>
+
+        <div id="assetManager">
+            <h3>Asset Manager</h3>
+            <button onclick="closeAssetManager()" style="width:100%; margin-bottom:15px;">Close</button>
+            
+            <div class="assetUploadSection">
+                <h4>Upload Tile Assets</h4>
+                <div class="uploadBox" onclick="document.getElementById('tileUpload').click()" 
+                     ondrop="handleDrop(event, 'tile')" 
+                     ondragover="handleDragOver(event)" 
+                     ondragleave="handleDragLeave(event)">
+                    <p>Click or drag to upload tile sprites (16x16 px recommended)</p>
+                    <input type="file" id="tileUpload" accept="image/*" multiple onchange="handleFileUpload(event, 'tile')">
+                </div>
+                <div class="assetInfo">
+                    Tiles should be 16x16 pixels for best results. Larger images will be scaled down.
+                </div>
+                <div id="tileAssets"></div>
+            </div>
+            
+            <div class="assetUploadSection">
+                <h4>Upload NPC Sprites</h4>
+                <div class="uploadBox" onclick="document.getElementById('npcUpload').click()"
+                     ondrop="handleDrop(event, 'npc')" 
+                     ondragover="handleDragOver(event)" 
+                     ondragleave="handleDragLeave(event)">
+                    <p>Click or drag to upload NPC sprites (16x64 px sprite sheet recommended)</p>
+                    <input type="file" id="npcUpload" accept="image/*" multiple onchange="handleFileUpload(event, 'npc')">
+                </div>
+                <div class="assetInfo">
+                    NPC sprites work best as 16x64 pixel sprite sheets (4 directions: down, up, left, right).
+                    Single 16x16 sprites will also work but won't have directional facing.
+                </div>
+                <div id="npcAssets"></div>
+            </div>
+        </div>
+
+        <div id="dialogueBox">
+            <div class="speaker"></div>
+            <div class="message"></div>
+            <div class="prompt">Press T to continue</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Disable image smoothing for pixel art
+        ctx.imageSmoothingEnabled = false;
+        ctx.mozImageSmoothingEnabled = false;
+        ctx.webkitImageSmoothingEnabled = false;
+        ctx.msImageSmoothingEnabled = false;
+        
+        // Boot sequence
+        function initBootSequence() {
+            // Show Mattendo logo
+            setTimeout(() => {
+                document.getElementById('bootScreen').style.display = 'none';
+                document.getElementById('titleScreen').style.display = 'flex';
+                drawSkateparkBackground();
+            }, 3000);
+        }
+        
+        // Draw skatepark background
+        function drawSkateparkBackground() {
+            const bgCanvas = document.getElementById('bgCanvas');
+            const bgCtx = bgCanvas.getContext('2d');
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            
+            bgCtx.imageSmoothingEnabled = false;
+            
+            // Sky gradient effect with pixels
+            const pixelSize = 4;
+            for (let y = 0; y < bgCanvas.height; y += pixelSize) {
+                const gradient = y / bgCanvas.height;
+                const r = Math.floor(135 + gradient * 20);
+                const g = Math.floor(206 - gradient * 20);
+                const b = Math.floor(235 - gradient * 30);
+                bgCtx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                bgCtx.fillRect(0, y, bgCanvas.width, pixelSize);
+            }
+            
+            // Ground
+            bgCtx.fillStyle = '#696969';
+            bgCtx.fillRect(0, bgCanvas.height * 0.7, bgCanvas.width, bgCanvas.height * 0.3);
+            
+            // Add concrete texture
+            bgCtx.fillStyle = '#5a5a5a';
+            for (let i = 0; i < 50; i++) {
+                const x = Math.random() * bgCanvas.width;
+                const y = bgCanvas.height * 0.7 + Math.random() * (bgCanvas.height * 0.3);
+                bgCtx.fillRect(x, y, pixelSize * 2, pixelSize);
+            }
+            
+            // Draw pixel skate ramps
+            const rampWidth = 120;
+            const rampHeight = 60;
+            
+            // Quarter pipe left
+            bgCtx.fillStyle = '#2c3e50';
+            for (let i = 0; i < rampHeight; i += pixelSize) {
+                const width = Math.sqrt((rampHeight * rampHeight) - (i * i)) * (rampWidth / rampHeight);
+                bgCtx.fillRect(100, bgCanvas.height * 0.7 - i, width, pixelSize);
+            }
+            
+            // Quarter pipe right
+            for (let i = 0; i < rampHeight; i += pixelSize) {
+                const width = Math.sqrt((rampHeight * rampHeight) - (i * i)) * (rampWidth / rampHeight);
+                bgCtx.fillRect(bgCanvas.width - 100 - width, bgCanvas.height * 0.7 - i, width, pixelSize);
+            }
+            
+            // Fun box in middle
+            bgCtx.fillStyle = '#34495e';
+            bgCtx.fillRect(bgCanvas.width/2 - 60, bgCanvas.height * 0.7 - 40, 120, 40);
+            
+            // Rail
+            bgCtx.fillStyle = '#c0c0c0';
+            bgCtx.fillRect(bgCanvas.width/2 - 70, bgCanvas.height * 0.7 - 44, 140, 4);
+            
+            // Add some pixel clouds
+            bgCtx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            drawPixelCloud(bgCtx, 150, 100, pixelSize);
+            drawPixelCloud(bgCtx, bgCanvas.width - 200, 80, pixelSize);
+            drawPixelCloud(bgCtx, bgCanvas.width/2, 120, pixelSize);
+            
+            // Add pixel birds
+            bgCtx.fillStyle = '#000';
+            drawPixelBird(bgCtx, 300, 150, pixelSize);
+            drawPixelBird(bgCtx, 350, 170, pixelSize);
+            drawPixelBird(bgCtx, bgCanvas.width - 300, 140, pixelSize);
+        }
+        
+        function drawPixelCloud(ctx, x, y, size) {
+            // Create blocky cloud shape
+            ctx.fillRect(x, y, size * 8, size * 3);
+            ctx.fillRect(x - size * 2, y + size, size * 12, size * 4);
+            ctx.fillRect(x - size, y + size * 5, size * 10, size * 2);
+        }
+        
+        function drawPixelBird(ctx, x, y, size) {
+            // Simple V-shape bird
+            ctx.fillRect(x, y, size * 2, size);
+            ctx.fillRect(x - size * 2, y - size, size * 2, size);
+            ctx.fillRect(x + size * 2, y - size, size * 2, size);
+        }
+        
+        // Start the actual game
+        function startGame() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('settingsBtn').style.display = 'block';
+            document.getElementById('controls').style.display = 'block';
+            initGame();
+        }
+        
+        // Game settings
+        const TILE_SIZE = 16;
+        const SCALE = 3;
+        const SCALED_TILE = TILE_SIZE * SCALE;
+        const MAP_WIDTH = 60;
+        const MAP_HEIGHT = 15;
+        const VIEWPORT_WIDTH = 20;
+        const VIEWPORT_HEIGHT = 15;
+        
+        canvas.width = VIEWPORT_WIDTH * TILE_SIZE * SCALE;
+        canvas.height = VIEWPORT_HEIGHT * TILE_SIZE * SCALE;
+        
+        // Game state
+        const game = {
+            mode: 'play',
+            player: {
+                x: 30,
+                y: 12,
+                pixelX: 30 * TILE_SIZE,
+                pixelY: 12 * TILE_SIZE,
+                facing: 'down',
+                moving: false,
+                moveProgress: 0,
+                targetX: 30,
+                targetY: 12,
+                speed: 2,
+                animFrame: 0,
+                animTimer: 0
+            },
+            camera: {
+                x: 0,
+                y: 0
+            },
+            keys: {},
+            sprites: {},
+            customAssets: {
+                tiles: [],
+                npcs: []
+            },
+            map: [],
+            tileWalkability: {}, // Track which tile IDs are walkable
+            npcs: [],
+            selectedTile: 0,
+            selectedNPC: null,
+            selectedNPCSprite: 0,
+            dialogueActive: false,
+            currentDialogue: null,
+            currentTab: 'tiles'
+        };
+
+        // Initialize default walkability
+        game.tileWalkability[0] = true; // Floor
+        game.tileWalkability[1] = false; // Wall
+        game.tileWalkability[2] = false; // Desk
+        game.tileWalkability[3] = false; // Plant
+        game.tileWalkability[4] = true; // Door
+        game.tileWalkability[5] = false; // Window
+
+        // Load saved game data
+        function loadGameData() {
+            const saved = localStorage.getItem('zumiez_game_data');
+            if (saved) {
+                const data = JSON.parse(saved);
+                game.map = data.map || game.map;
+                game.npcs = data.npcs || [];
+                game.customAssets = data.customAssets || { tiles: [], npcs: [] };
+                game.tileWalkability = data.tileWalkability || game.tileWalkability;
+                
+                // Reconstruct image objects from saved data
+                game.customAssets.tiles = game.customAssets.tiles.map(asset => {
+                    const img = new Image();
+                    img.src = asset.src;
+                    return { ...asset, img };
+                });
+                
+                game.customAssets.npcs = game.customAssets.npcs.map(asset => {
+                    const img = new Image();
+                    img.src = asset.src;
+                    return { ...asset, img };
+                });
+            }
+        }
+
+        // Save game data
+        function saveGameData() {
+            const data = {
+                map: game.map,
+                npcs: game.npcs,
+                customAssets: {
+                    tiles: game.customAssets.tiles.map(asset => ({
+                        name: asset.name,
+                        src: asset.src,
+                        walkable: asset.walkable
+                    })),
+                    npcs: game.customAssets.npcs.map(asset => ({
+                        name: asset.name,
+                        src: asset.src
+                    }))
+                },
+                tileWalkability: game.tileWalkability
+            };
+            localStorage.setItem('zumiez_game_data', JSON.stringify(data));
+        }
+
+        // Export game data
+        function exportGameData() {
+            const data = localStorage.getItem('zumiez_game_data') || '{}';
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'zumiez_game_save.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Import game data
+        function importGameData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    localStorage.setItem('zumiez_game_data', event.target.result);
+                    location.reload();
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+        
+        // Initialize map
+        function initMap() {
+            // Fill with cement floor
+            for (let y = 0; y < MAP_HEIGHT; y++) {
+                game.map[y] = [];
+                for (let x = 0; x < MAP_WIDTH; x++) {
+                    game.map[y][x] = 0;
+                }
+            }
+            
+            // Add walls and windows along the perimeter
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                if (x > 0 && x < MAP_WIDTH - 1 && x % 3 === 0) {
+                    game.map[0][x] = 5;
+                } else {
+                    game.map[0][x] = 1;
+                }
+                
+                if ((x === 29 || x === 30)) {
+                    game.map[MAP_HEIGHT - 1][x] = 4;
+                } else if (x > 0 && x < MAP_WIDTH - 1 && x % 3 === 0) {
+                    game.map[MAP_HEIGHT - 1][x] = 5;
+                } else {
+                    game.map[MAP_HEIGHT - 1][x] = 1;
+                }
+            }
+            
+            for (let y = 0; y < MAP_HEIGHT; y++) {
+                if (y > 0 && y < MAP_HEIGHT - 1 && y % 2 === 0) {
+                    game.map[y][0] = 5;
+                    game.map[y][MAP_WIDTH - 1] = 5;
+                } else {
+                    game.map[y][0] = 1;
+                    game.map[y][MAP_WIDTH - 1] = 1;
+                }
+            }
+            
+            // Add some default desks
+            for (let i = 0; i < 8; i++) {
+                if (5 + i * 7 < MAP_WIDTH - 2) {
+                    game.map[3][5 + i * 7] = 2;
+                    game.map[6][5 + i * 7] = 2;
+                    game.map[9][5 + i * 7] = 2;
+                }
+            }
+            
+            // Add default NPCs
+            game.npcs = [
+                {
+                    x: 10,
+                    y: 5,
+                    name: "Store Manager",
+                    dialogue: "Welcome to the Zumiez office! We're stoked to have you here.",
+                    facing: 'down',
+                    spriteIndex: 0
+                },
+                {
+                    x: 20,
+                    y: 7,
+                    name: "Marketing Team",
+                    dialogue: "Working on the new campaign for the summer collection!",
+                    facing: 'left',
+                    spriteIndex: 0
+                }
+            ];
+        }
+        
+        // Create default sprite textures
+        function createSprites() {
+            // Player sprite - Ash style
+            const playerCanvas = document.createElement('canvas');
+            playerCanvas.width = TILE_SIZE * 4;
+            playerCanvas.height = TILE_SIZE * 4;
+            const pCtx = playerCanvas.getContext('2d');
+            pCtx.imageSmoothingEnabled = false;
+            
+            const drawAsh = (x, y, facing, frame) => {
+                // Pants
+                pCtx.fillStyle = '#4169e1';
+                pCtx.fillRect(x + 4, y + 10, 8, 4);
+                
+                // Shirt
+                pCtx.fillStyle = '#4169e1';
+                pCtx.fillRect(x + 4, y + 6, 8, 5);
+                pCtx.fillStyle = '#fff';
+                pCtx.fillRect(x + 6, y + 7, 4, 3);
+                
+                // Arms
+                pCtx.fillStyle = '#fdbcb4';
+                pCtx.fillRect(x + 3, y + 7, 1, 3);
+                pCtx.fillRect(x + 12, y + 7, 1, 3);
+                
+                // Head
+                pCtx.fillStyle = '#fdbcb4';
+                pCtx.fillRect(x + 5, y + 3, 6, 5);
+                
+                // Hat
+                pCtx.fillStyle = '#ff0000';
+                pCtx.fillRect(x + 4, y + 2, 8, 3);
+                pCtx.fillStyle = '#fff';
+                pCtx.fillRect(x + 4, y + 4, 8, 1);
+                
+                if (facing === 'down') {
+                    pCtx.fillStyle = '#ff0000';
+                    pCtx.fillRect(x + 3, y + 5, 10, 1);
+                } else if (facing === 'left') {
+                    pCtx.fillStyle = '#ff0000';
+                    pCtx.fillRect(x + 3, y + 4, 3, 1);
+                } else if (facing === 'right') {
+                    pCtx.fillStyle = '#ff0000';
+                    pCtx.fillRect(x + 10, y + 4, 3, 1);
+                }
+                
+                // Hair and eyes
+                pCtx.fillStyle = '#000';
+                if (facing !== 'up') {
+                    pCtx.fillRect(x + 5, y + 5, 1, 1);
+                    pCtx.fillRect(x + 10, y + 5, 1, 1);
+                }
+                
+                if (facing === 'down') {
+                    pCtx.fillRect(x + 6, y + 6, 1, 1);
+                    pCtx.fillRect(x + 9, y + 6, 1, 1);
+                } else if (facing === 'left') {
+                    pCtx.fillRect(x + 6, y + 6, 1, 1);
+                } else if (facing === 'right') {
+                    pCtx.fillRect(x + 9, y + 6, 1, 1);
+                }
+                
+                // Legs animation
+                pCtx.fillStyle = '#4169e1';
+                if (frame === 0) {
+                    pCtx.fillRect(x + 5, y + 14, 2, 2);
+                    pCtx.fillRect(x + 9, y + 14, 2, 2);
+                } else {
+                    pCtx.fillRect(x + 6, y + 14, 2, 2);
+                    pCtx.fillRect(x + 8, y + 14, 2, 2);
+                }
+                
+                // Shoes
+                pCtx.fillStyle = '#000';
+                if (frame === 0) {
+                    pCtx.fillRect(x + 5, y + 15, 2, 1);
+                    pCtx.fillRect(x + 9, y + 15, 2, 1);
+                } else {
+                    pCtx.fillRect(x + 6, y + 15, 2, 1);
+                    pCtx.fillRect(x + 8, y + 15, 2, 1);
+                }
+            };
+            
+            // Draw all Ash frames
+            drawAsh(0, 0, 'down', 0);
+            drawAsh(TILE_SIZE, 0, 'down', 1);
+            drawAsh(0, TILE_SIZE, 'up', 0);
+            drawAsh(TILE_SIZE, TILE_SIZE, 'up', 1);
+            drawAsh(0, TILE_SIZE * 2, 'left', 0);
+            drawAsh(TILE_SIZE, TILE_SIZE * 2, 'left', 1);
+            drawAsh(0, TILE_SIZE * 3, 'right', 0);
+            drawAsh(TILE_SIZE, TILE_SIZE * 3, 'right', 1);
+            
+            game.sprites.player = playerCanvas;
+            
+            // Default NPC sprite
+            const npcCanvas = document.createElement('canvas');
+            npcCanvas.width = TILE_SIZE;
+            npcCanvas.height = TILE_SIZE * 4;
+            const nCtx = npcCanvas.getContext('2d');
+            nCtx.imageSmoothingEnabled = false;
+            
+            for (let i = 0; i < 4; i++) {
+                const y = i * TILE_SIZE;
+                nCtx.fillStyle = '#2c3e50';
+                nCtx.fillRect(4, y + 10, 8, 4);
+                nCtx.fillStyle = '#3498db';
+                nCtx.fillRect(4, y + 6, 8, 5);
+                nCtx.fillStyle = '#fdbcb4';
+                nCtx.fillRect(5, y + 2, 6, 6);
+                nCtx.fillStyle = '#8b4513';
+                nCtx.fillRect(5, y + 2, 6, 3);
+                nCtx.fillStyle = '#000';
+                if (i === 0) {
+                    nCtx.fillRect(6, y + 5, 1, 1);
+                    nCtx.fillRect(9, y + 5, 1, 1);
+                }
+                nCtx.fillRect(5, y + 14, 2, 2);
+                nCtx.fillRect(9, y + 14, 2, 2);
+            }
+            
+            game.sprites.npc = npcCanvas;
+            
+            // Create default tile sprites
+            const tilesCanvas = document.createElement('canvas');
+            tilesCanvas.width = TILE_SIZE * 6;
+            tilesCanvas.height = TILE_SIZE;
+            const tCtx = tilesCanvas.getContext('2d');
+            tCtx.imageSmoothingEnabled = false;
+            
+            // Cement floor (0)
+            tCtx.fillStyle = '#95a5a6';
+            tCtx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
+            tCtx.fillStyle = '#7f8c8d';
+            for (let i = 0; i < 3; i++) {
+                const x = Math.random() * 14;
+                const y = Math.random() * 14;
+                tCtx.fillRect(x, y, 1, 3);
+                tCtx.fillRect(x, y, 3, 1);
+            }
+            
+            // Wall (1)
+            tCtx.fillStyle = '#636e72';
+            tCtx.fillRect(TILE_SIZE, 0, TILE_SIZE, TILE_SIZE);
+            tCtx.fillStyle = '#2d3436';
+            tCtx.fillRect(TILE_SIZE, 0, TILE_SIZE, 2);
+            
+            // Desk (2)
+            tCtx.fillStyle = '#8b6f47';
+            tCtx.fillRect(TILE_SIZE * 2, 2, TILE_SIZE, TILE_SIZE - 2);
+            tCtx.fillStyle = '#2d3436';
+            tCtx.fillRect(TILE_SIZE * 2 + 4, 4, 8, 6);
+            tCtx.fillStyle = '#74b9ff';
+            tCtx.fillRect(TILE_SIZE * 2 + 5, 5, 6, 4);
+            
+            // Plant (3)
+            tCtx.fillStyle = '#795548';
+            tCtx.fillRect(TILE_SIZE * 3 + 5, 10, 6, 6);
+            tCtx.fillStyle = '#00b894';
+            tCtx.fillRect(TILE_SIZE * 3 + 4, 4, 8, 8);
+            
+            // Door (4)
+            tCtx.fillStyle = '#2d3436';
+            tCtx.fillRect(TILE_SIZE * 4, 0, TILE_SIZE, TILE_SIZE);
+            tCtx.fillStyle = '#74b9ff';
+            tCtx.fillRect(TILE_SIZE * 4 + 2, 2, TILE_SIZE - 4, TILE_SIZE - 4);
+            
+            // Window (5)
+            tCtx.fillStyle = '#2d3436';
+            tCtx.fillRect(TILE_SIZE * 5, 0, TILE_SIZE, TILE_SIZE);
+            tCtx.fillStyle = '#87ceeb';
+            tCtx.fillRect(TILE_SIZE * 5 + 2, 2, TILE_SIZE - 4, TILE_SIZE - 4);
+            
+            game.sprites.tiles = tilesCanvas;
+        }
+        
+        // Handle file upload
+        function handleFileUpload(event, type) {
+            const files = event.target.files;
+            for (let file of files) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const asset = {
+                            name: file.name.split('.')[0],
+                            src: e.target.result,
+                            img: img,
+                            walkable: type === 'tile' ? true : false
+                        };
+                        
+                        if (type === 'tile') {
+                            game.customAssets.tiles.push(asset);
+                            const tileIndex = 6 + game.customAssets.tiles.length - 1;
+                            game.tileWalkability[tileIndex] = true;
+                        } else {
+                            game.customAssets.npcs.push(asset);
+                        }
+                        
+                        updateAssetDisplay();
+                        saveGameData();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // Handle drag and drop
+        function handleDrop(event, type) {
+            event.preventDefault();
+            event.target.classList.remove('dragover');
+            
+            const files = event.dataTransfer.files;
+            const fileArray = Array.from(files);
+            
+            const input = type === 'tile' ? 
+                document.getElementById('tileUpload') : 
+                document.getElementById('npcUpload');
+            
+            input.files = event.dataTransfer.files;
+            handleFileUpload({ target: input }, type);
+        }
+        
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.target.classList.add('dragover');
+        }
+        
+        function handleDragLeave(event) {
+            event.target.classList.remove('dragover');
+        }
+        
+        // Update asset display
+        function updateAssetDisplay() {
+            // Update tile assets display
+            const tileContainer = document.getElementById('tileAssets');
+            tileContainer.innerHTML = '';
+            game.customAssets.tiles.forEach((asset, index) => {
+                const div = document.createElement('div');
+                div.className = 'assetPreview';
+                
+                const img = document.createElement('img');
+                img.src = asset.src;
+                
+                const name = document.createElement('div');
+                name.className = 'assetName';
+                name.textContent = asset.name;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'deleteBtn';
+                deleteBtn.textContent = '×';
+                deleteBtn.onclick = () => {
+                    game.customAssets.tiles.splice(index, 1);
+                    updateAssetDisplay();
+                    saveGameData();
+                };
+                
+                div.appendChild(img);
+                div.appendChild(name);
+                div.appendChild(deleteBtn);
+                tileContainer.appendChild(div);
+            });
+            
+            // Update NPC assets display
+            const npcContainer = document.getElementById('npcAssets');
+            npcContainer.innerHTML = '';
+            game.customAssets.npcs.forEach((asset, index) => {
+                const div = document.createElement('div');
+                div.className = 'assetPreview';
+                
+                const img = document.createElement('img');
+                img.src = asset.src;
+                
+                const name = document.createElement('div');
+                name.className = 'assetName';
+                name.textContent = asset.name;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'deleteBtn';
+                deleteBtn.textContent = '×';
+                deleteBtn.onclick = () => {
+                    game.customAssets.npcs.splice(index, 1);
+                    updateAssetDisplay();
+                    saveGameData();
+                };
+                
+                div.appendChild(img);
+                div.appendChild(name);
+                div.appendChild(deleteBtn);
+                npcContainer.appendChild(div);
+            });
+            
+            // Update world builder selectors
+            if (game.mode === 'build') {
+                updateBuilderSelectors();
+            }
+        }
+        
+        // Update builder selectors
+        function updateBuilderSelectors() {
+            // Update tile selector
+            const tileSelector = document.getElementById('tileSelector');
+            tileSelector.innerHTML = '';
+            
+            // Default tiles
+            const defaultTileNames = ['Floor', 'Wall', 'Desk', 'Plant', 'Door', 'Window'];
+            for (let i = 0; i < 6; i++) {
+                createTileButton(i, defaultTileNames[i], game.sprites.tiles, i * TILE_SIZE, 0);
+            }
+            
+            // Custom tiles
+            game.customAssets.tiles.forEach((asset, index) => {
+                const tileIndex = 6 + index;
+                createTileButtonFromImage(tileIndex, asset.name, asset.img);
+            });
+            
+            // Update NPC selector
+            const npcSelector = document.getElementById('npcSelector');
+            npcSelector.innerHTML = '';
+            
+            // Default NPC
+            createNPCButton(0, 'Default NPC', game.sprites.npc);
+            
+            // Custom NPCs
+            game.customAssets.npcs.forEach((asset, index) => {
+                createNPCButton(index + 1, asset.name, asset.img);
+            });
+            
+            // Update NPC sprite dropdown
+            const spriteSelect = document.getElementById('npcSprite');
+            spriteSelect.innerHTML = '<option value="0">Default NPC</option>';
+            game.customAssets.npcs.forEach((asset, index) => {
+                const option = document.createElement('option');
+                option.value = index + 1;
+                option.textContent = asset.name;
+                spriteSelect.appendChild(option);
+            });
+        }
+        
+        function createTileButton(index, name, source, sx, sy) {
+            const btn = document.createElement('button');
+            btn.className = 'assetButton';
+            btn.title = name;
+            if (index === game.selectedTile) btn.classList.add('selected');
+            btn.onclick = () => {
+                document.querySelectorAll('#tileSelector .assetButton').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                game.selectedTile = index;
+                document.getElementById('walkableCheckbox').checked = game.tileWalkability[index] !== false;
+            };
+            
+            const preview = document.createElement('canvas');
+            preview.width = 40;
+            preview.height = 40;
+            const pCtx = preview.getContext('2d');
+            pCtx.imageSmoothingEnabled = false;
+            pCtx.drawImage(source, sx, sy, TILE_SIZE, TILE_SIZE, 0, 0, 40, 40);
+            btn.appendChild(preview);
+            
+            document.getElementById('tileSelector').appendChild(btn);
+        }
+        
+        function createTileButtonFromImage(index, name, img) {
+            const btn = document.createElement('button');
+            btn.className = 'assetButton';
+            btn.title = name;
+            if (index === game.selectedTile) btn.classList.add('selected');
+            btn.onclick = () => {
+                document.querySelectorAll('#tileSelector .assetButton').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                game.selectedTile = index;
+                document.getElementById('walkableCheckbox').checked = game.tileWalkability[index] !== false;
+            };
+            
+            const preview = document.createElement('canvas');
+            preview.width = 40;
+            preview.height = 40;
+            const pCtx = preview.getContext('2d');
+            pCtx.imageSmoothingEnabled = false;
+            pCtx.drawImage(img, 0, 0, Math.min(img.width, TILE_SIZE), Math.min(img.height, TILE_SIZE), 0, 0, 40, 40);
+            btn.appendChild(preview);
+            
+            document.getElementById('tileSelector').appendChild(btn);
+        }
+        
+        function createNPCButton(index, name, img) {
+            const btn = document.createElement('button');
+            btn.className = 'assetButton';
+            btn.title = name;
+            if (index === game.selectedNPCSprite) btn.classList.add('selected');
+            btn.onclick = () => {
+                document.querySelectorAll('#npcSelector .assetButton').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                game.selectedNPCSprite = index;
+            };
+            
+            const preview = document.createElement('canvas');
+            preview.width = 40;
+            preview.height = 40;
+            const pCtx = preview.getContext('2d');
+            pCtx.imageSmoothingEnabled = false;
+            pCtx.drawImage(img, 0, 0, Math.min(img.width, TILE_SIZE), Math.min(img.height, TILE_SIZE), 0, 0, 40, 40);
+            btn.appendChild(preview);
+            
+            document.getElementById('npcSelector').appendChild(btn);
+        }
+        
+        // Check if tile is walkable
+        function isWalkable(x, y) {
+            if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return false;
+            const tile = game.map[y][x];
+            
+            // Check for NPCs
+            for (let npc of game.npcs) {
+                if (npc.x === x && npc.y === y) return false;
+            }
+            
+            return game.tileWalkability[tile] === true;
+        }
+        
+        // Check for NPC interaction
+        function checkNPCInteraction() {
+            const player = game.player;
+            let checkX = player.x;
+            let checkY = player.y;
+            
+            if (player.facing === 'up') checkY--;
+            else if (player.facing === 'down') checkY++;
+            else if (player.facing === 'left') checkX--;
+            else if (player.facing === 'right') checkX++;
+            
+            for (let npc of game.npcs) {
+                if (npc.x === checkX && npc.y === checkY) {
+                    showDialogue(npc);
+                    return;
+                }
+            }
+        }
+        
+        // Show dialogue
+        function showDialogue(npc) {
+            game.dialogueActive = true;
+            game.currentDialogue = npc;
+            const dialogueBox = document.getElementById('dialogueBox');
+            dialogueBox.querySelector('.speaker').textContent = npc.name || 'Employee';
+            dialogueBox.querySelector('.message').textContent = npc.dialogue || 'Hey there!';
+            dialogueBox.style.display = 'block';
+        }
+        
+        // Hide dialogue
+        function hideDialogue() {
+            game.dialogueActive = false;
+            game.currentDialogue = null;
+            document.getElementById('dialogueBox').style.display = 'none';
+        }
+        
+        // Update camera
+        function updateCamera() {
+            const player = game.player;
+            
+            game.camera.x = Math.max(0, Math.min(
+                player.pixelX - (VIEWPORT_WIDTH * TILE_SIZE) / 2,
+                (MAP_WIDTH - VIEWPORT_WIDTH) * TILE_SIZE
+            ));
+            
+            game.camera.y = Math.max(0, Math.min(
+                player.pixelY - (VIEWPORT_HEIGHT * TILE_SIZE) / 2,
+                (MAP_HEIGHT - VIEWPORT_HEIGHT) * TILE_SIZE
+            ));
+        }
+        
+        // Update player
+        function updatePlayer() {
+            if (game.mode !== 'play' || game.dialogueActive) return;
+            
+            const player = game.player;
+            
+            if (player.moving) {
+                player.animTimer++;
+                if (player.animTimer > 8) {
+                    player.animTimer = 0;
+                    player.animFrame = (player.animFrame + 1) % 2;
+                }
+            } else {
+                player.animFrame = 0;
+                player.animTimer = 0;
+            }
+            
+            if (player.moving) {
+                const dx = player.targetX * TILE_SIZE - player.pixelX;
+                const dy = player.targetY * TILE_SIZE - player.pixelY;
+                
+                if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+                    player.pixelX += dx * 0.2;
+                    player.pixelY += dy * 0.2;
+                } else {
+                    player.pixelX = player.targetX * TILE_SIZE;
+                    player.pixelY = player.targetY * TILE_SIZE;
+                    player.x = player.targetX;
+                    player.y = player.targetY;
+                    player.moving = false;
+                }
+            }
+            
+            if (!player.moving) {
+                let newX = player.x;
+                let newY = player.y;
+                let newFacing = player.facing;
+                
+                if (game.keys.ArrowUp || game.keys.KeyW) {
+                    newY--;
+                    newFacing = 'up';
+                } else if (game.keys.ArrowDown || game.keys.KeyS) {
+                    newY++;
+                    newFacing = 'down';
+                } else if (game.keys.ArrowLeft || game.keys.KeyA) {
+                    newX--;
+                    newFacing = 'left';
+                } else if (game.keys.ArrowRight || game.keys.KeyD) {
+                    newX++;
+                    newFacing = 'right';
+                }
+                
+                player.facing = newFacing;
+                
+                if ((newX !== player.x || newY !== player.y) && isWalkable(newX, newY)) {
+                    player.moving = true;
+                    player.targetX = newX;
+                    player.targetY = newY;
+                }
+            }
+        }
+        
+        // Draw tile
+        function drawTile(tileIndex, x, y) {
+            if (tileIndex < 6) {
+                // Default tile
+                ctx.drawImage(
+                    game.sprites.tiles,
+                    tileIndex * TILE_SIZE, 0, TILE_SIZE, TILE_SIZE,
+                    x, y, SCALED_TILE, SCALED_TILE
+                );
+            } else {
+                // Custom tile
+                const customIndex = tileIndex - 6;
+                if (customIndex < game.customAssets.tiles.length) {
+                    const asset = game.customAssets.tiles[customIndex];
+                    ctx.drawImage(
+                        asset.img,
+                        0, 0, Math.min(asset.img.width, TILE_SIZE), Math.min(asset.img.height, TILE_SIZE),
+                        x, y, SCALED_TILE, SCALED_TILE
+                    );
+                }
+            }
+        }
+        
+        // Draw NPC
+        function drawNPC(npc, x, y) {
+            const facingIndex = { down: 0, up: 1, left: 2, right: 3 }[npc.facing || 'down'];
+            
+            if (npc.spriteIndex === 0 || npc.spriteIndex === undefined) {
+                // Default NPC
+                ctx.drawImage(
+                    game.sprites.npc,
+                    0, facingIndex * TILE_SIZE, TILE_SIZE, TILE_SIZE,
+                    x, y, SCALED_TILE, SCALED_TILE
+                );
+            } else {
+                // Custom NPC
+                const customIndex = npc.spriteIndex - 1;
+                if (customIndex < game.customAssets.npcs.length) {
+                    const asset = game.customAssets.npcs[customIndex];
+                    const spriteHeight = asset.img.height >= 64 ? TILE_SIZE : asset.img.height;
+                    const sy = asset.img.height >= 64 ? facingIndex * TILE_SIZE : 0;
+                    
+                    ctx.drawImage(
+                        asset.img,
+                        0, sy, Math.min(asset.img.width, TILE_SIZE), spriteHeight,
+                        x, y, SCALED_TILE, SCALED_TILE
+                    );
+                }
+            }
+        }
+        
+        // Render game
+        function render() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const startX = Math.floor(game.camera.x / TILE_SIZE);
+            const startY = Math.floor(game.camera.y / TILE_SIZE);
+            const endX = Math.min(startX + VIEWPORT_WIDTH + 1, MAP_WIDTH);
+            const endY = Math.min(startY + VIEWPORT_HEIGHT + 1, MAP_HEIGHT);
+            
+            // Draw tiles
+            for (let y = startY; y < endY; y++) {
+                for (let x = startX; x < endX; x++) {
+                    const tile = game.map[y][x];
+                    const screenX = (x * TILE_SIZE - game.camera.x) * SCALE;
+                    const screenY = (y * TILE_SIZE - game.camera.y) * SCALE;
+                    
+                    drawTile(tile, screenX, screenY);
+                    
+                    // Draw grid in build mode
+                    if (game.mode === 'build') {
+                        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                        ctx.strokeRect(screenX, screenY, SCALED_TILE, SCALED_TILE);
+                    }
+                }
+            }
+            
+            // Draw NPCs
+            for (let npc of game.npcs) {
+                if (npc.x >= startX && npc.x <= endX && npc.y >= startY && npc.y <= endY) {
+                    const screenX = (npc.x * TILE_SIZE - game.camera.x) * SCALE;
+                    const screenY = (npc.y * TILE_SIZE - game.camera.y) * SCALE;
+                    
+                    drawNPC(npc, screenX, screenY);
+                    
+                    // Highlight selected NPC in build mode
+                    if (game.mode === 'build' && game.selectedNPC === npc) {
+                        ctx.strokeStyle = '#3498db';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(screenX, screenY, SCALED_TILE, SCALED_TILE);
+                    }
+                }
+            }
+            
+            // Draw player (only in play mode)
+            if (game.mode === 'play') {
+                const player = game.player;
+                const facingIndex = { down: 0, up: 1, left: 2, right: 3 }[player.facing];
+                const screenX = (player.pixelX - game.camera.x) * SCALE;
+                const screenY = (player.pixelY - game.camera.y) * SCALE;
+                
+                ctx.drawImage(
+                    game.sprites.player,
+                    player.animFrame * TILE_SIZE, facingIndex * TILE_SIZE, TILE_SIZE, TILE_SIZE,
+                    screenX, screenY, SCALED_TILE, SCALED_TILE
+                );
+            }
+        }
+        
+        // Game loop
+        function gameLoop() {
+            updatePlayer();
+            updateCamera();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // World Builder functions
+        function enterWorldBuilder() {
+            game.mode = 'build';
+            document.getElementById('settingsMenu').style.display = 'none';
+            document.getElementById('worldBuilder').style.display = 'block';
+            updateBuilderSelectors();
+        }
+        
+        function exitWorldBuilder() {
+            game.mode = 'play';
+            document.getElementById('worldBuilder').style.display = 'none';
+            saveGameData();
+        }
+        
+        function switchTab(tab) {
+            game.currentTab = tab;
+            document.querySelectorAll('.tabButton').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tabContent').forEach(content => content.classList.remove('active'));
+            
+            if (tab === 'tiles') {
+                document.querySelector('.tabButton:nth-child(1)').classList.add('active');
+                document.getElementById('tilesTab').classList.add('active');
+            } else {
+                document.querySelector('.tabButton:nth-child(2)').classList.add('active');
+                document.getElementById('npcsTab').classList.add('active');
+            }
+        }
+        
+        function placeNPC() {
+            const centerX = Math.floor((game.camera.x + VIEWPORT_WIDTH * TILE_SIZE / 2) / TILE_SIZE);
+            const centerY = Math.floor((game.camera.y + VIEWPORT_HEIGHT * TILE_SIZE / 2) / TILE_SIZE);
+            
+            if (isWalkable(centerX, centerY)) {
+                const newNPC = {
+                    x: centerX,
+                    y: centerY,
+                    name: 'New Employee',
+                    dialogue: 'Hello! I just started working here!',
+                    facing: 'down',
+                    spriteIndex: game.selectedNPCSprite
+                };
+                game.npcs.push(newNPC);
+                game.selectedNPC = newNPC;
+            }
+        }
+        
+        function editNPCDialogue() {
+            if (!game.selectedNPC) {
+                alert('Please click on an NPC to select it first!');
+                return;
+            }
+            
+            document.getElementById('npcName').value = game.selectedNPC.name || '';
+            document.getElementById('npcDialogue').value = game.selectedNPC.dialogue || '';
+            document.getElementById('npcSprite').value = game.selectedNPC.spriteIndex || 0;
+            document.getElementById('npcDialogueEditor').style.display = 'block';
+        }
+        
+        function saveNPCDialogue() {
+            if (game.selectedNPC) {
+                game.selectedNPC.name = document.getElementById('npcName').value;
+                game.selectedNPC.dialogue = document.getElementById('npcDialogue').value;
+                game.selectedNPC.spriteIndex = parseInt(document.getElementById('npcSprite').value);
+            }
+            document.getElementById('npcDialogueEditor').style.display = 'none';
+            saveGameData();
+        }
+        
+        function closeNPCEditor() {
+            document.getElementById('npcDialogueEditor').style.display = 'none';
+        }
+        
+        function openAssetManager() {
+            document.getElementById('settingsMenu').style.display = 'none';
+            document.getElementById('assetManager').style.display = 'block';
+            updateAssetDisplay();
+        }
+        
+        function closeAssetManager() {
+            document.getElementById('assetManager').style.display = 'none';
+        }
+        
+        function closeSettings() {
+            document.getElementById('settingsMenu').style.display = 'none';
+        }
+        
+        function resetGame() {
+            if (confirm('This will reset the entire game to default. Are you sure?')) {
+                localStorage.removeItem('zumiez_game_data');
+                location.reload();
+            }
+        }
+        
+        // Input handling
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Escape') {
+                if (game.dialogueActive) {
+                    hideDialogue();
+                } else if (document.getElementById('settingsMenu').style.display === 'block') {
+                    closeSettings();
+                } else if (document.getElementById('assetManager').style.display === 'block') {
+                    closeAssetManager();
+                } else if (document.getElementById('npcDialogueEditor').style.display === 'block') {
+                    closeNPCEditor();
+                } else if (game.mode === 'build') {
+                    exitWorldBuilder();
+                }
+                return;
+            }
+            
+            if (e.code === 'KeyT' && game.mode === 'play') {
+                if (game.dialogueActive) {
+                    hideDialogue();
+                } else {
+                    checkNPCInteraction();
+                }
+                return;
+            }
+            
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) {
+                game.keys[e.code] = true;
+                e.preventDefault();
+            }
+        });
+        
+        window.addEventListener('keyup', (e) => {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) {
+                game.keys[e.code] = false;
+                e.preventDefault();
+            }
+        });
+        
+        // Mouse handling for world builder
+        canvas.addEventListener('click', (e) => {
+            if (game.mode !== 'build') return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / SCALE + game.camera.x);
+            const y = Math.floor((e.clientY - rect.top) / SCALE + game.camera.y);
+            const tileX = Math.floor(x / TILE_SIZE);
+            const tileY = Math.floor(y / TILE_SIZE);
+            
+            if (game.currentTab === 'npcs') {
+                // Check if clicking an NPC
+                for (let npc of game.npcs) {
+                    if (npc.x === tileX && npc.y === tileY) {
+                        game.selectedNPC = npc;
+                        return;
+                    }
+                }
+            } else {
+                // Place tile
+                if (tileX >= 0 && tileX < MAP_WIDTH && tileY >= 0 && tileY < MAP_HEIGHT) {
+                    game.map[tileY][tileX] = game.selectedTile;
+                    game.tileWalkability[game.selectedTile] = document.getElementById('walkableCheckbox').checked;
+                }
+            }
+        });
+        
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            if (game.mode !== 'build') return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / SCALE + game.camera.x);
+            const y = Math.floor((e.clientY - rect.top) / SCALE + game.camera.y);
+            const tileX = Math.floor(x / TILE_SIZE);
+            const tileY = Math.floor(y / TILE_SIZE);
+            
+            if (game.currentTab === 'npcs') {
+                // Remove NPC at this position
+                game.npcs = game.npcs.filter(npc => npc.x !== tileX || npc.y !== tileY);
+            } else {
+                // Clear tile to floor
+                if (tileX >= 0 && tileX < MAP_WIDTH && tileY >= 0 && tileY < MAP_HEIGHT) {
+                    game.map[tileY][tileX] = 0;
+                }
+            }
+        });
+        
+        // Walkability checkbox
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkbox = document.getElementById('walkableCheckbox');
+            if (checkbox) {
+                checkbox.addEventListener('change', (e) => {
+                    game.tileWalkability[game.selectedTile] = e.target.checked;
+                    saveGameData();
+                });
+            }
+        });
+        
+        // Settings button
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            document.getElementById('settingsMenu').style.display = 'block';
+        });
+        
+        // Initialize and start game
+        function initGame() {
+            initMap();
+            loadGameData();
+            createSprites();
+            updateCamera();
+            gameLoop();
+        }
+        
+        // Start boot sequence when page loads
+        window.addEventListener('load', () => {
+            initBootSequence();
+        });
+    </script>
+</body>
+</html>
